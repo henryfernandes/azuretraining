@@ -250,6 +250,31 @@ resource "azurerm_virtual_machine" "hub-vm2" {
   }
 }
 
+
+module "mylb" {
+  source                                 = "./module/loadbalancer"
+  location                               = azurerm_resource_group.hub-vnet-rg.location
+  type                                   = "private"
+  frontend_subnet_id                     = azurerm_subnet.hub-mgmt.id
+  frontend_private_ip_address_allocation = "Static"
+  frontend_private_ip_address            = "10.0.1.6"
+
+  remote_port = {
+    ssh = ["Tcp", "22"]
+  }
+
+  lb_port = {
+    http  = ["80", "Tcp", "80"]
+    https = ["443", "Tcp", "443"]
+  }
+
+  tags = {
+    cost-center = "12345"
+    source      = "terraform"
+  }
+}
+
+
 ## Virtual Network Gateway
 #resource "azurerm_public_ip" "hub-vpn-gateway1-pip" {
 #  name                = "hub-vpn-gateway1-pip"
