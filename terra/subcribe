@@ -1,6 +1,0 @@
-#!/bin/sh
-echo "Setting environment variables for Terraform"
-ARM_SUBSCRIPTION_ID=your_subscription_id
-ARM_CLIENT_ID=your_appId
-ARM_CLIENT_SECRET=your_password
-ARM_TENANT_ID=c433b773-102b-4a7a-ba5d-4f2be286aafe
