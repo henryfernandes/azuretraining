@@ -43,13 +43,14 @@ resource "azurerm_application_gateway" "network" {
   }
 
   backend_address_pool {
-    name = "${local.backend_address_pool_name}"
+    name 		= "${local.backend_address_pool_name}"
+    ip_addresses  	= [azurerm_network_interface.hub-nic2.private_ip_address]
   }
 
   backend_http_settings {
     name                  = "${local.http_setting_name}"
     cookie_based_affinity = "Disabled"
-    path                  = "/path1/"
+    path                  = "/"
     port                  = 80
     protocol              = "Http"
     request_timeout       = 1
