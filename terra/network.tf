@@ -38,6 +38,13 @@ resource "azurerm_subnet" "hub-mgmt2" {
   address_prefix       = "10.1.1.0/24"
 }
 
+resource "azurerm_subnet" "hub-dmz2" {
+  name                 = "dmz2"
+  resource_group_name  = azurerm_resource_group.hub-vnet-rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefix       = "10.1.2.0/24"
+}
+
 resource "azurerm_subnet" "hub-mgmt" {
   name                 = "mgmt"
   resource_group_name  = azurerm_resource_group.hub-vnet-rg.name
@@ -250,58 +257,22 @@ resource "azurerm_virtual_machine" "hub-vm2" {
   }
 }
 
+resource "azurerm_virtual_machine_extension" "test" {
+  name                 = "hostname"
+  location              = azurerm_resource_group.hub-vnet-rg.location
+  resource_group_name   = azurerm_resource_group.hub-vnet-rg.name
+  virtual_machine_name = azurerm_virtual_machine.hub-vm2.name
+  publisher            = "Microsoft.Azure.Extensions"
+  type                 = "CustomScript"
+  type_handler_version = "2.0"
 
-module "mylb" {
-  source                                 = "./module/loadbalancer"
-  location                               = azurerm_resource_group.hub-vnet-rg.location
-  type                                   = "private"
-  frontend_subnet_id                     = azurerm_subnet.hub-mgmt.id
-  frontend_private_ip_address_allocation = "Static"
-  frontend_private_ip_address            = "10.0.1.6"
-
-  remote_port = {
-    ssh = ["Tcp", "22"]
-  }
-
-  lb_port = {
-    http  = ["80", "Tcp", "80"]
-    https = ["443", "Tcp", "443"]
-  }
+  settings = <<SETTINGS
+    {
+        "commandToExecute": "apt-get update ; apt-get install nginx-light -y"
+    }
+SETTINGS
 
   tags = {
-    cost-center = "12345"
-    source      = "terraform"
+    environment = "Terraform Demo"
   }
 }
-
-
-## Virtual Network Gateway
-#resource "azurerm_public_ip" "hub-vpn-gateway1-pip" {
-#  name                = "hub-vpn-gateway1-pip"
-#  location            = azurerm_resource_group.hub-vnet-rg.location
-#  resource_group_name = azurerm_resource_group.hub-vnet-rg.name
-#
-#  allocation_method = "Dynamic"
-#}
-#
-#resource "azurerm_virtual_network_gateway" "hub-vnet-gateway" {
-#  name                = "hub-vpn-gateway1"
-#  location            = azurerm_resource_group.hub-vnet-rg.location
-#  resource_group_name = azurerm_resource_group.hub-vnet-rg.name
-#
-#  type     = "Vpn"
-#  vpn_type = "RouteBased"
-#
-#  active_active = false
-#  enable_bgp    = false
-#  sku           = "VpnGw1"
-#
-#  ip_configuration {
-#    name                          = "vnetGatewayConfig"
-#    public_ip_address_id          = azurerm_public_ip.hub-vpn-gateway1-pip.id
-#    private_ip_address_allocation = "Dynamic"
-#    subnet_id                     = azurerm_subnet.hub-mgmt.id
-#  }
-#  depends_on = [azurerm_public_ip.hub-vpn-gateway1-pip]
-#}
-
